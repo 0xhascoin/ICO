@@ -17,7 +17,7 @@ export default function Home() {
   const [walletConnected, setWalletConnected] = useState(false); // Tracks if user connected their wallet
   const [loading, setLoading] = useState(false); // Set to true when transaction is mining
   const [tokensToBeClaimed, setTokensToBeClaimed] = useState(zero); // Tracks number of tokens that can be claimed
-  const [balanceOfCryptoDevToken, setBalanceOfCryptoDevToken] = useState(zero); // Tracks number of crypto dev tokens owned by an address
+  const [balanceOfCryptoDevTokens, setBalanceOfCryptoDevTokens] = useState(zero); // Tracks number of crypto dev tokens owned by an address
   const [tokenAmount, setTokenAmount] = useState(zero); // Tracks number of tokens user wants to mint
   const [tokensMinted, setTokensMinted] = useState(zero); // Tracks the total number of tokens that have been minted till now
   const [isOwner, setIsOwner] = useState(false); // Gets the owner of the contract through the signed address
@@ -60,10 +60,27 @@ export default function Home() {
     }
   }
 
+  /**
+   * getBalanceOfCryptoDevTokens: Checks the balance of CryptoDev tokens held by the address
+   */
+  const getBalanceOfCryptoDevTokens = async () => {
+    try {
+      const provider = getProviderOrSigner(); // Get the provider from web3Modal, no need for signer as only reading
+      const tokenContract = new Contract(TOKEN_CONTRACT_ADDRESS, TOKEN_CONTRACT_ABI, provider); // Create an instance of the token contract
+      const signer = getProviderOrSigner(true); // Get the signer from web3Modal, needed to extract the address of the currently connected wallet
+      const address = await signer.getAddress(); // Get the address
+      const balance = await tokenContract.balanceOf(address); // Get the number of tokens held by the user
+      setBalanceOfCryptoDevTokens(balance); // Set the balance to the state, no need to convert to BigNumber as it already is
+    } catch (error) {
+      console.error(error);
+      setBalanceOfCryptoDevTokens(zero);
+    }
+  }
+
 
 
 
   return (
-    
+    <></>
   )
 }
