@@ -37,17 +37,17 @@ export default function Home() {
       const address = await signer.getAddress(); // Get the address of the connected account
       const balance = await nftContract.balanceOf(address); // Call the balanceOf from the NFT contract to get the number of NFTs held by the user
 
-      if(balance === zero) {
+      if (balance === zero) {
         setTokensToBeClaimed(zero);
       } else {
         let amount = 0; // Tracks number of unclaimed tokens
         // For all the NFTs, check if the tokens have already been claimed
         // Only increase the amount if the tokens have not been claimed
         // for a NFT - for a given tokenId
-        for(let i = 0; i < balance; i++) {
+        for (let i = 0; i < balance; i++) {
           const tokenId = await nftContract.tokenOwnerByIndex(address, i); // Gets the ID of the current NFT in the loop
           const claimed = await tokenContract.tokenIdsClaimed(tokenId); // Checks whether the current NFT has been claimed or not
-          if(!claimed) {
+          if (!claimed) {
             amount += 1; // Increment if the token has not been claimed
           }
         }
@@ -76,6 +76,32 @@ export default function Home() {
       setBalanceOfCryptoDevTokens(zero);
     }
   }
+
+  /**
+   * mintCryptoDevToken: mints 'amount' number of tokens to a given address
+   */
+  const mintCryptoDevToken = async (amount) => {
+    try {
+      const signer = getProviderOrSigner(true); // Get the signer from web3Modal, needed to write
+      const tokenContract = new Contract(TOKEN_CONTRACT_ADDRESS, TOKEN_CONTRACT_ABI, signer); // Create an instance of the token contract
+      const value = 0.001 * amount; // Each token is of 0.001 ether. The value we need to send is 0.001 * amount
+      const tx = await tokenContract.mint(amount, { value: utils.parseEther(value.toString()) }); // Value signifies the cost of one crypto dev token which is "0.001" eth.
+      setLoading(true); // Starts the loading when transaction is being mined
+      await tx.wait(); // Wait for the transaction to get mined
+      setLoading(false); // Stops the loading when the transaction finished mining
+      window.alert('Successfully claimed Crypto Dev Tokens'); // Alert on the frontend when transaction finished mining
+      await getBalanceOfCryptoDevTokens(); // Checks the balance of CryptoDev tokens held by the address
+      await getTotalTokensMinted(); // Retrieves how many tokens have been minted till now * out of the total supply
+      await getTokensToBeClaimed(); // Checks the balance of tokens that can be claimed by the user
+
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  /**
+   * getTotalTokensMinted: Retrieves how many tokens have been minted till now out of the total supply
+   */
 
 
 
