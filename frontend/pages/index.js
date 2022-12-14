@@ -102,7 +102,34 @@ export default function Home() {
   /**
    * getTotalTokensMinted: Retrieves how many tokens have been minted till now out of the total supply
    */
+  const getTotalTokensMinted = async () => {
+    try {
+      const provider = await getProviderOrSigner(); // Only need the provider for reading.
+      const tokenContract = new Contract(TOKEN_CONTRACT_ADDRESS, TOKEN_CONTRACT_ABI, provider); // Create an instance of the token contract
+      const _tokensMinted = await tokenContract.totalSupply(); // Gets all the tokens that have been minted
+      setTokensMinted(_tokensMinted);
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
+  /**
+   * getOwner: Gets the contract owner by connected address
+   */
+  const getOwner = async () => {
+    try {
+      const provider = await getProviderOrSigner(); // Only need the provider for reading.
+      const tokenContract = new Contract(TOKEN_CONTRACT_ADDRESS, TOKEN_CONTRACT_ABI, provider); // Create an instance of the token contract
+      const _owner = await tokenContract.owner(); // Get the owner of the contract
+      const signer = await getProviderOrSigner(true);
+      const address = await signer.getAddress(); // Gets the address of the connected wallet
+      if(address.toLowerCase() === _owner.toLowerCase()) {
+        setIsOwner(true);
+      }
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
 
 
 
