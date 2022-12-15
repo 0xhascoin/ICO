@@ -123,7 +123,7 @@ export default function Home() {
       const _owner = await tokenContract.owner(); // Get the owner of the contract
       const signer = await getProviderOrSigner(true);
       const address = await signer.getAddress(); // Gets the address of the connected wallet
-      if(address.toLowerCase() === _owner.toLowerCase()) {
+      if (address.toLowerCase() === _owner.toLowerCase()) {
         setIsOwner(true);
       }
     } catch (error) {
@@ -131,6 +131,74 @@ export default function Home() {
     }
   }
 
+  /**
+   * withdrawCoins: withdraws ether by calling the withdraw function in the contract
+   */
+
+  const withdrawCoins = async () => {
+    try {
+      const signer = await getProviderOrSigner(true);
+      const tokenContract = new Contract(TOKEN_CONTRACT_ADDRESS, TOKEN_CONTRACT_ABI, signer);
+      const tx = await tokenContract.withdraw();
+      setLoading(true);
+      tx.wait();
+      setLoading(false);
+      await getOwner();
+    } catch (error) {
+      console.error(error);
+      window.alert(error.reason);
+    }
+  }
+
+  /**
+   * getProviderOrSigner: returns provider or signer
+   * provider is for reading from the blockchain
+   * signer is for writing to the blockchain
+   */
+  const getProviderOrSigner = async (needSigner = false) => {
+    const provider = await web3ModalRef.current.connect();
+    const web3Provider = new providers.Web3Provider(provider);
+
+    const { chainId } = await web3Provider.getNetwork();
+    if(chainId !== 5) {
+      window.alert("Change the network to Georli.");
+      throw new Error("Change the network to Georli.");
+    }
+
+    if(needSigner) {
+      const signer = web3Provider.getSigner();
+      return signer;
+    }
+    return web3Provider;
+  }
+
+  /**
+   * connectWallet: Connects to Metamask wallet
+   */
+  const connectWallet = async () => {
+    try {
+      await getProviderOrSigner();
+      setWalletConnected(true);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
+    if(!walletConnected) {
+      web3ModalRef.current = new Web3Modal({
+        network: "goerli",
+        providerOptions: {},
+        disableInjectedProvider: false
+      });
+
+      connectWallet();
+      getTotalTokensMinted();
+      getBalanceOfCryptoDevTokens();
+      getTokensToBeClaimed();
+      getOwner();
+    }
+  }, [walletConnected])
 
 
   return (
